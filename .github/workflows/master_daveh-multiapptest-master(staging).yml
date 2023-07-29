@@ -7,7 +7,13 @@ on:
   push:
     branches:
       - master
+      - v6
+      - v5
+      - v4
   workflow_dispatch:
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
 
 jobs:
   build:
@@ -15,7 +21,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v1
         with:
@@ -51,7 +57,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'daveh-multiapptest-master'
+          app-name: 'daveh-multiapptest-${{env.BRANCH_NAME}}'
           slot-name: 'staging'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C9A2E76C1B6F4202906AAB8DDB52EB66 }}
           package: .
