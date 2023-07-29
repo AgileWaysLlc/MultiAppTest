@@ -1,0 +1,60 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy ASP.Net Core app to Azure Web App - daveh-multiapptest-(BRANCH)
+
+on:
+  push:
+    branches:
+      - v6
+  workflow_dispatch:
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '7.x'
+          include-prerelease: true
+
+      - name: Build with dotnet
+        run: dotnet build AppSvcScaleUpTest1.csproj --configuration Release
+
+      - name: dotnet publish
+        run: dotnet publish AppSvcScaleUpTest1.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    environment:
+      name: 'staging'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: .net-app
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'daveh-multiapptest-${{env.BRANCH_NAME}}'
+          slot-name: 'staging'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C9A2E76C1B6F4202906AAB8DDB52EB66 }}
+          package: .
