@@ -7,9 +7,6 @@ on:
   push:
     branches:
       - master
-      - v6
-      - v5
-      - v4
   workflow_dispatch:
 
 env:
